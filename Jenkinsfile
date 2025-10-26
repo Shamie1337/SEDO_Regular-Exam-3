@@ -1,45 +1,29 @@
 pipeline {
   agent any
+  triggers { githubPush() }
 
-  // Trigger from GitHub webhook on every push
-  triggers {
-    githubPush()
-  }
+  environment { IS_MAIN = "${env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'origin/main'}" }
 
   stages {
     stage('Checkout') {
-      when { branch 'main' }
-      steps {
-        checkout scm
-      }
+      when { expression { return env.IS_MAIN.toBoolean() } }
+      steps { checkout scm }
     }
-
     stage('Setup .NET') {
-      when { branch 'main' }
-      steps {
-        sh 'dotnet --version'   
-      }
+      when { expression { return env.IS_MAIN.toBoolean() } }
+      steps { sh 'dotnet --version' }
     }
-
     stage('Restore') {
-      when { branch 'main' }
-      steps {
-        sh 'dotnet restore'
-      }
+      when { expression { return env.IS_MAIN.toBoolean() } }
+      steps { sh 'dotnet restore' }
     }
-
     stage('Build') {
-      when { branch 'main' }
-      steps {
-        sh 'dotnet build --configuration Release --no-restore'
-      }
+      when { expression { return env.IS_MAIN.toBoolean() } }
+      steps { sh 'dotnet build --configuration Release --no-restore' }
     }
-
     stage('Test') {
-      when { branch 'main' }
-      steps {
-        sh 'dotnet test --configuration Release --no-build --verbosity normal'
-      }
+      when { expression { return env.IS_MAIN.toBoolean() } }
+      steps { sh 'dotnet test --configuration Release --no-build --verbosity normal' }
     }
   }
 }
