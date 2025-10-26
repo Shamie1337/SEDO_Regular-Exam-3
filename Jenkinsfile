@@ -1,45 +1,33 @@
 pipeline {
   agent any
+  triggers { githubPush() }
 
-  options {
-    timestamps()
+  options { timestamps() }
+
+  environment {
+    IS_MAIN = "${env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'origin/main'}"
   }
 
-  // Run only for 'main' branch
   stages {
     stage('Checkout') {
-      when { branch 'main' }
-      steps {
-        checkout scm
-      }
+      when { expression { env.IS_MAIN.toBoolean() } }
+      steps { checkout scm }
     }
-
     stage('Setup .NET') {
-      when { branch 'main' }
-      steps {
-        sh 'dotnet --info'
-      }
+      when { expression { env.IS_MAIN.toBoolean() } }
+      steps { sh 'dotnet --info' }
     }
-
     stage('Restore dependencies') {
-      when { branch 'main' }
-      steps {
-        sh 'dotnet restore'
-      }
+      when { expression { env.IS_MAIN.toBoolean() } }
+      steps { sh 'dotnet restore' }
     }
-
     stage('Build') {
-      when { branch 'main' }
-      steps {
-        sh 'dotnet build --no-restore --configuration Release'
-      }
+      when { expression { env.IS_MAIN.toBoolean() } }
+      steps { sh 'dotnet build --configuration Release --no-restore' }
     }
-
     stage('Test') {
-      when { branch 'main' }
-      steps {
-        sh 'dotnet test --no-build --configuration Release --verbosity normal'
-      }
+      when { expression { env.IS_MAIN.toBoolean() } }
+      steps { sh 'dotnet test --configuration Release --no-build --verbosity normal' }
     }
   }
 }
