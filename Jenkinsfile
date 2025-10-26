@@ -5,6 +5,10 @@ pipeline {
     timestamps()
   }
 
+  environment {
+  PATH = "/usr/local/share/dotnet:/usr/local/bin:/opt/homebrew/bin:${PATH}"
+}
+
   // Run only for 'main' branch
   stages {
     stage('Checkout') {
